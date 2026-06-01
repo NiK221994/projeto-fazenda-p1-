@@ -7,9 +7,9 @@ admins = [{'usuario': 'admin', 'senha': 'adm123'}]  # admin padrao
 def criar_usuario(user: str, senha: str|int):
     for u in usuarios:
         if u['usuario'] == user:
-            return False  # ja existe
+            return False  # ja existe = break
     usuarios.append({'usuario': user, 'senha': senha})
-    return True
+    return True 
 
 
 def criar_admin(user: str, senha: str|int):

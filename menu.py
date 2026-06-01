@@ -7,8 +7,8 @@
 #   fpdf2   -> gera recibo em PDF ao agendar retirada
 #   requests -> consulta clima em tempo real via API Open-Meteo
 
-from rich.console import Console 
-from rich.table import Table 
+from rich.console import Console
+from rich.table import Table
 
 import auth
 import fazenda
@@ -16,8 +16,6 @@ import agenda
 import clima
 
 console = Console()
-
-carrinho = []  
 
 
 while True:  # MENU PRINCIPAL
@@ -54,11 +52,11 @@ while True:  # MENU PRINCIPAL
             if auth.criar_admin(user, senha1):
                 print("Administrador criado com sucesso!")
             else:
-                print("Administrador já existe.")
+                print("Administrador ja existe.")
 
         else:
-            print("Opção inválida!") 
-            print("Cadastro cancelado")
+            print("Opcao invalida!")
+            print("Cadastro cancelado.")
 
 
     elif opcao == "ADM":  # ADMINISTRADOR
@@ -93,14 +91,14 @@ while True:  # MENU PRINCIPAL
                 elif opcao_2 == "LISTA_U":  # LISTA USUARIOS
                     print("-" * 40)
                     for u in auth.usuarios:
-                        print("usuario:", u['usuario'], "-", "senha:", u['senha'])
+                        print("usuario:", u['usuario'], "- senha:", u['senha'])
                     print("-" * 40)
 
 
                 elif opcao_2 == "LISTA_A":  # LISTA ADMINS
                     print("-" * 40)
                     for a in auth.admins:
-                        print("admin:", a['usuario'], "-", "senha:", a['senha'])
+                        print("admin:", a['usuario'], "- senha:", a['senha'])
                     print("-" * 40)
 
 
@@ -119,15 +117,7 @@ while True:  # MENU PRINCIPAL
 
 
                 elif opcao_2 == "LISTA":  # LISTA ANIMAIS
-                    print("=" * 50)
-                    print("--- Em producao / engorda ---")
-                    for a in fazenda.animais:
-                        print(a['tipo'], "-", a['identificacao'], "-", a['status'])
-
-                    print("--- Para venda ---")
-                    for a in fazenda.animais_venda:
-                        print(a['tipo'], "-", a['identificacao'], "-", a['status'], "- R$", a['valor'])
-                    print("=" * 50)
+                    fazenda.exibir_animais()
 
 
                 elif opcao_2 == "AT":  # ATUALIZAR ANIMAL
@@ -139,7 +129,13 @@ while True:  # MENU PRINCIPAL
                     arroba = float(input("Novo valor da arroba (R$): "))
 
                     if fazenda.atualizar_animal(ident, tipo, nova_id, status, peso, arroba):
+                        tipo = input("Novo tipo: ")
+                        nova_id = input("Nova identificacao: ")
+                        status = input("Novo status [LAC / GORDA / VENDA]: ").upper()
+                        peso = float(input("Novo peso (kg): "))
+                        arroba = float(input("Novo valor da arroba (R$): "))
                         print("Atualizado com sucesso!")
+
                     else:
                         print("Animal nao encontrado.")
 
@@ -170,11 +166,11 @@ while True:  # MENU PRINCIPAL
                         elif opcao_3 == "1":  # PRODUCAO LEITE
                             litros = float(input("Litros de leite: "))
                             fazenda.adicionar_leite(litros)
-                            print(f"Adicionado! Total no estoque: {fazenda.leite:.1f}L")
+                            print(f"Adicionado! Total no estoque: {fazenda.estoque_leite():.1f}L")
 
                         elif opcao_3 == "2":  # ESTOQUE LEITE
                             print("-" * 40)
-                            print(f"{fazenda.leite:.2f} litros de leite")
+                            print(f"{fazenda.estoque_leite():.2f} litros de leite")
                             print("-" * 40)
 
                         elif opcao_3 == "3":  # CADASTRAR PRODUTO
@@ -189,46 +185,40 @@ while True:  # MENU PRINCIPAL
                                 print("Estoque de leite insuficiente!")
 
                         elif opcao_3 == "4":  # ESTOQUE PRODUTOS
-                            print("-" * 40)
-                            for p in fazenda.produtos:
-                                print(p['nome'], "-", p['kg'], "kg -", "R$", p['valor_kg'], "/kg")
-                            print("-" * 40)
+                            fazenda.exibir_produtos()
 
                         else:
                             print("Opcao invalida.")
 
 
-                elif opcao_2 == "REL":  # RELATORIO GERAL (rich - tabelas coloridas)
+                elif opcao_2 == "REL":  # RELATORIO GERAL (rich)
                     print("\n===== RELATORIO GERAL DA FAZENDA SERTAO =====")
 
-                    # contagem por tipo
+                    animais, animais_venda = fazenda.listar_animais()
+
                     contagem = {}
-                    for a in fazenda.animais + fazenda.animais_venda:
+                    for a in animais + animais_venda:
                         contagem[a['tipo']] = contagem.get(a['tipo'], 0) + 1
 
-                    t1 = Table(title="Animais por Tipo")
-                    t1.add_column("Tipo", style="cyan")
-                    t1.add_column("Quantidade", justify="right")
-                    for tipo, qtd in contagem.items():
-                        t1.add_row(tipo, str(qtd))
-                    console.print(t1)
+                    print("\n---Animais por Tipo---")
+                    for tipo,gtd in contagem.items():
+                        print(f'{tipo}: {quantidade}')
 
-                    t2 = Table(title="Estoque")
-                    t2.add_column("Item", style="green")
-                    t2.add_column("Valor", justify="right")
-                    t2.add_row("Leite disponivel", f"{fazenda.leite:.2f} L")
-                    t2.add_row("Animais em producao", str(len(fazenda.animais)))
-                    t2.add_row("Animais para venda", str(len(fazenda.animais_venda)))
-                    console.print(t2)
+                    print('\n---Estoque---')
+                    print(f'Leite disponível: {fazenda.leite:.2f}L')
+                    print(f'Animais em produção: {len(fazenda.animais)}')
+                    print(f'Animais para venda: {len(fazenda.animais_venda)}')
 
-                    if fazenda.produtos:
-                        t3 = Table(title="Produtos Derivados")
-                        t3.add_column("Produto", style="yellow")
-                        t3.add_column("Estoque (kg)", justify="right")
-                        t3.add_column("R$/kg", justify="right")
-                        for p in fazenda.produtos:
-                            t3.add_row(p['nome'], f"{p['kg']:.2f}", f"R$ {p['valor_kg']:.2f}")
-                        console.print(t3)
+                    produtos = fazenda.listar_produtos()
+                    if produtos:
+                        print('\n---Produtos Derivados---')
+                        for p in produtos:
+                            print(
+                                f'Produto: {p['nome']}'
+                                f'Estoque: {p['kg']:.2f}Kg'
+                                f'Preço: R$ {p['valor']:.2f}/Kg'
+                            )
+                        
 
 
                 elif opcao_2 == "HIST":  # HISTORICO
@@ -236,15 +226,15 @@ while True:  # MENU PRINCIPAL
                         print("Nenhuma movimentacao registrada.")
                         continue
 
-                    t = Table(title="Historico de Movimentacoes")
-                    t.add_column("Data/Hora")
-                    t.add_column("Acao")
-                    t.add_column("Item")
-                    t.add_column("Qtd")
-                    for h in fazenda.historico:
-                        t.add_row(h['data'], h['acao'], h['item'], str(h['qtd']))
-                    console.print(t)
+                    print('\nHistorico de Movimentacoes')
 
+                    for h in fazenda.historico:
+                        print(
+                            f"Data: {h['data']} | "
+                            f"Ação: {h['acao']} | "
+                            f"Item: {h['item']} | "
+                            f"Qtd: {h['qtd']}"                  )
+                   
 
                 else:
                     print("Opcao invalida.")
@@ -259,7 +249,7 @@ while True:  # MENU PRINCIPAL
 
         else:
             print(f"Bem-vindo, {user}!")
-            carrinho = []
+            fazenda.limpar_carrinho()
 
             while True:  # MENU CLIENTE
                 print("--- MENU CLIENTE ---")
@@ -278,13 +268,8 @@ while True:  # MENU PRINCIPAL
                     break
 
 
-                elif opcao_4 == "1":  # VER PRODUTOS
-                    print("-" * 50)
-                    for p in fazenda.produtos:
-                        print(p['nome'], "-", p['kg'], "kg -", "R$", p['valor_kg'], "/kg")
-                    for a in fazenda.animais_venda:
-                        print("tipo:", a['tipo'], "- id:", a['identificacao'], "- R$", a['valor'])
-                    print("-" * 50)
+                elif opcao_4 == "1":  # VER PRODUTOS E ANIMAIS
+                    fazenda.exibir_catalogo()
 
 
                 elif opcao_4 == "2":  # COMPRAR
@@ -292,20 +277,17 @@ while True:  # MENU PRINCIPAL
                     categoria = input("O que deseja comprar? ").upper()
 
                     if categoria == "P":
-                        print("-" * 40)
-                        for p in fazenda.produtos:
-                            print(p['nome'], "-", p['kg'], "kg -", "R$", p['valor_kg'], "/kg")
-                        print("-" * 40)
+                        fazenda.exibir_produtos()
                         nome = input("Nome do produto: ").lower()
                         quantidade = float(input("Quantos kg: "))
 
                         resultado = fazenda.comprar_produto(nome, quantidade)
                         if resultado:
-                            carrinho.append({
-                                'descricao': resultado['nome'],
-                                'quantidade': f"{resultado['quantidade']} kg",
-                                'valor': resultado['total']
-                            })
+                            fazenda.adicionar_ao_carrinho(
+                                resultado['nome'],
+                                f"{resultado['quantidade']} kg",
+                                resultado['total']
+                            )
                             print("Adicionado ao carrinho!")
                             print("=" * 40)
                             print("Produto:", resultado['nome'])
@@ -316,19 +298,16 @@ while True:  # MENU PRINCIPAL
                             print("Produto nao encontrado ou estoque insuficiente.")
 
                     elif categoria == "A":
-                        print("-" * 40)
-                        for a in fazenda.animais_venda:
-                            print("tipo:", a['tipo'], "- id:", a['identificacao'], "- R$", a['valor'])
-                        print("-" * 40)
+                        fazenda.exibir_animais_venda()
                         ident = input("Identificacao do animal: ").lower()
 
                         animal = fazenda.comprar_animal(ident)
                         if animal:
-                            carrinho.append({
-                                'descricao': f"{animal['tipo']} (ID: {animal['identificacao']})",
-                                'quantidade': "1 animal",
-                                'valor': animal['valor']
-                            })
+                            fazenda.adicionar_ao_carrinho(
+                                f"{animal['tipo']} (ID: {animal['identificacao']})",
+                                "1 animal",
+                                animal['valor']
+                            )
                             print("Adicionado ao carrinho!")
                             print("=" * 40)
                             print("Animal:", animal['tipo'])
@@ -342,20 +321,20 @@ while True:  # MENU PRINCIPAL
 
 
                 elif opcao_4 == "3":  # VER CARRINHO
-                    if not carrinho:
+                    itens, total = fazenda.ver_carrinho()
+                    if not itens:
                         print("Carrinho vazio.")
                         continue
                     print("-" * 50)
-                    total_carrinho = 0.0
-                    for item in carrinho:
+                    for item in itens:
                         print(item['descricao'], "-", item['quantidade'], "- R$", item['valor'])
-                        total_carrinho += item['valor']
-                    print("TOTAL: R$", round(total_carrinho, 2))
+                    print("TOTAL: R$", total)
                     print("-" * 50)
 
 
                 elif opcao_4 == "4":  # AGENDAR RETIRADA + PDF
-                    if not carrinho:
+                    itens, _ = fazenda.ver_carrinho()
+                    if not itens:
                         print("Carrinho vazio. Adicione itens antes de agendar.")
                         continue
 
@@ -369,24 +348,24 @@ while True:  # MENU PRINCIPAL
                         print(erro_data)
                         continue
 
-                    ag = agenda.agendar(dia, mes, ano, nome_cliente, list(carrinho))
+                    ag = agenda.agendar(dia, mes, ano, nome_cliente, list(itens))
                     print("Agendamento realizado com sucesso!")
 
-                    # Gera o recibo em PDF (fpdf2)
                     caminho = agenda.gerar_recibo_pdf(ag)
                     print(f"Recibo gerado: {caminho}")
 
-                    carrinho = []
+                    fazenda.limpar_carrinho()
 
 
                 elif opcao_4 == "5":  # LISTA DE AGENDAMENTOS
                     print("-" * 50)
                     for ag in agenda.agendamentos:
-                        print(ag['dia'], "/", ag['mes'], "/", ag['ano'], "-", ag['cliente'], "- R$", ag['total'])
+                        print(ag['dia'], "/", ag['mes'], "/", ag['ano'],
+                              "-", ag['cliente'], "- R$", ag['total'])
                     print("-" * 50)
 
 
-                elif opcao_4 == "6":  # PREVISAO DO TEMPO (requests + Open-Meteo)
+                elif opcao_4 == "6":  # PREVISAO DO TEMPO
                     print("Consultando clima para a regiao Sertao...")
                     dados = clima.consultar_clima()
 
