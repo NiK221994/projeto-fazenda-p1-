@@ -2,21 +2,20 @@
 #
 # Pacotes externos:
 #   pip install rich fpdf2 requests
-#
-#   rich    -> tabelas coloridas no terminal (relatorio do adm)
+
 #   fpdf2   -> gera recibo em PDF ao agendar retirada
 #   requests -> consulta clima em tempo real via API Open-Meteo
 
-from rich.console import Console
-from rich.table import Table
+
 
 import auth
 import fazenda
 import agenda
 import clima
 
-console = Console()
 
+
+caminho = 'C:/Users/igor/Documents/relatorio-bater-ponto/relatorios.txt'
 
 while True:  # MENU PRINCIPAL
     print("[E]   Entrar")
@@ -86,8 +85,8 @@ while True:  # MENU PRINCIPAL
 
                 if opcao_2 == "V":
                     break
-
-
+                                
+                                    
                 elif opcao_2 == "LISTA_U":  # LISTA USUARIOS
                     print("-" * 40)
                     for u in auth.usuarios:
@@ -106,38 +105,39 @@ while True:  # MENU PRINCIPAL
                     status = input("Status: (em lactacao [LAC], para engorda [GORDA], para venda [VENDA]): ").upper()
                     tipo = input("Tipo do animal (Bovino de Leite, Caprino, Ovino, Suino/Leitao): ")
                     identificacao = input("Identificacao (brinco[A-Z] / numero[0-9]): ")
+                    
 
                     peso = arroba = 0.0
                     if status == "VENDA":
-                        peso = float(input("Peso do animal (kg): "))
-                        arroba = float(input("Valor da arroba (R$): "))
+                        peso = input("Peso do animal (kg): ")
+                        arroba = input("Valor da arroba (R$): ")
 
-                    fazenda.cadastrar_animal(tipo, identificacao, status, peso, arroba)
-                    print("Animal cadastrado!")
+                    if fazenda.cadastrar_animal(tipo, identificacao, status, peso, arroba):
+                        print("Animal cadastrado!")
 
 
                 elif opcao_2 == "LISTA":  # LISTA ANIMAIS
                     fazenda.exibir_animais()
 
 
-                elif opcao_2 == "AT":  # ATUALIZAR ANIMAL
-                    ident = input("Identificacao do animal: ")
-                    tipo = input("Novo tipo: ")
-                    nova_id = input("Nova identificacao: ")
-                    status = input("Novo status [LAC / GORDA / VENDA]: ").upper()
-                    peso = float(input("Novo peso (kg): "))
-                    arroba = float(input("Novo valor da arroba (R$): "))
+                elif opcao_2 == "AT":
+                    ident = input("Identificacao do animal: ").upper()
 
-                    if fazenda.atualizar_animal(ident, tipo, nova_id, status, peso, arroba):
+                    animal,lista = fazenda.buscar_animal_por_id(ident) 
+
+                    if not animal:
+                        print("Animal nao encontrado.")
+                    else:
                         tipo = input("Novo tipo: ")
                         nova_id = input("Nova identificacao: ")
                         status = input("Novo status [LAC / GORDA / VENDA]: ").upper()
-                        peso = float(input("Novo peso (kg): "))
-                        arroba = float(input("Novo valor da arroba (R$): "))
-                        print("Atualizado com sucesso!")
+                        peso = input("Novo peso (kg): ")
+                        arroba = input("Novo valor da arroba (R$): ")
 
-                    else:
-                        print("Animal nao encontrado.")
+                        if fazenda.atualizar_animal(ident, tipo, nova_id, status, peso, arroba):
+                            print("Atualizado com sucesso!")
+
+                    
 
 
                 elif opcao_2 == "R":  # REMOVER ANIMAL
@@ -163,9 +163,9 @@ while True:  # MENU PRINCIPAL
                         if opcao_3 == "0":
                             break
 
-                        elif opcao_3 == "1":  # PRODUCAO LEITE
-                            litros = float(input("Litros de leite: "))
-                            fazenda.adicionar_leite(litros)
+                        elif opcao_3 == "1":  # PRODUCAO LEITE                            
+                            valor = input("digite um valor: ")
+                            fazenda.adicionar_leite(valor)
                             print(f"Adicionado! Total no estoque: {fazenda.estoque_leite():.1f}L")
 
                         elif opcao_3 == "2":  # ESTOQUE LEITE
@@ -175,9 +175,9 @@ while True:  # MENU PRINCIPAL
 
                         elif opcao_3 == "3":  # CADASTRAR PRODUTO
                             nome = input("Nome do produto: ")
-                            kg = float(input("Quantidade (kg): "))
-                            valor = float(input("Valor por kg (R$): "))
-                            leite_por_kg = float(input("Litros de leite necessarios por kg: "))
+                            kg = input("Quantidade (kg): ")
+                            valor = input("Valor por kg (R$): ")
+                            leite_por_kg = input("Litros de leite necessarios por kg: ")
 
                             if fazenda.cadastrar_produto(nome, kg, valor, leite_por_kg):
                                 print("Produto cadastrado!")
@@ -201,8 +201,8 @@ while True:  # MENU PRINCIPAL
                         contagem[a['tipo']] = contagem.get(a['tipo'], 0) + 1
 
                     print("\n---Animais por Tipo---")
-                    for tipo,gtd in contagem.items():
-                        print(f'{tipo}: {quantidade}')
+                    for tipo,qtd in contagem.items():
+                        print(f'{tipo}: {qtd}')
 
                     print('\n---Estoque---')
                     print(f'Leite disponível: {fazenda.leite:.2f}L')
@@ -216,7 +216,7 @@ while True:  # MENU PRINCIPAL
                             print(
                                 f'Produto: {p['nome']}'
                                 f'Estoque: {p['kg']:.2f}Kg'
-                                f'Preço: R$ {p['valor']:.2f}/Kg'
+                                f'Preço: R$ {p['valor_kg']:.2f}/Kg'
                             )
                         
 
@@ -279,7 +279,7 @@ while True:  # MENU PRINCIPAL
                     if categoria == "P":
                         fazenda.exibir_produtos()
                         nome = input("Nome do produto: ").lower()
-                        quantidade = float(input("Quantos kg: "))
+                        quantidade = input("Quantos kg: ")
 
                         resultado = fazenda.comprar_produto(nome, quantidade)
                         if resultado:
@@ -394,3 +394,4 @@ while True:  # MENU PRINCIPAL
 
     else:
         print("Opcao invalida.")
+
