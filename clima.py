@@ -1,8 +1,8 @@
-# clima.py - Previsao do tempo via API Open-Meteo (gratuita, sem chave)
+# clima.py - Previsao do tempo via API Open-Meteo 
 
 import requests
 
-LAT = -6.757   # Sousa - PB
+LAT = -6.757   # Sousa 
 LON = -38.229
 
 
