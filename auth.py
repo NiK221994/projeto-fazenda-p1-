@@ -1,7 +1,7 @@
 # auth.py - Usuarios e autenticacao
 
 usuarios = []   #usurio normal
-admins = [{'usuario': 'admin', 'senha': 'adm123'}]  # admin padrao
+admins = [{'usuario': 'a', 'senha': 'a'}]  # admin padrao
 
 
 def criar_usuario(user: str, senha: str|int):
@@ -15,7 +15,7 @@ def criar_usuario(user: str, senha: str|int):
 def criar_admin(user: str, senha: str|int):
     for a in admins:
         if a['usuario'] == user:
-            return False  # ja existe
+            return False  
     admins.append({'usuario': user, 'senha': senha})
     return True
 
