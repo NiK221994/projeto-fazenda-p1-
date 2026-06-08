@@ -85,3 +85,4 @@ def gerar_recibo_pdf(ag):
     caminho = f"recibo_{ag['id']}.pdf"
     pdf.output(caminho)
     return caminho
+
