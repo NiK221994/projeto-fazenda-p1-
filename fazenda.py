@@ -8,11 +8,13 @@ produtos = []       # [{'nome':..., 'kg':..., 'valor_kg':...}, ...]
 historico = []      # [{'data':..., 'acao':..., 'item':..., 'qtd':...}, ...]
 carrinho = []       # [{'descricao':..., 'quantidade':..., 'valor':...}, ...]
 leite = 0.0
+palavras_a = []
 
 
 
-# Utilitarios internos
 
+
+        
 
 def _calcular_valor(peso: float, arroba: float) -> float:
     """15 kg = 1 arroba."""
@@ -34,18 +36,28 @@ def registrar_historico(acao: str, item: str, qtd: float):
 
 def cadastrar_animal(tipo: str, identificacao: str, status: str,
                      peso: float = 0.0, arroba: float = 0.0):
-    animal = {
-        'tipo': tipo,
-        'identificacao': identificacao,
-        'status': status,
-        'peso': peso,
-        'valor': _calcular_valor(peso, arroba) if status.upper() == 'VENDA' else 0.0,
-    }
-    if status.upper() == 'VENDA':
-        animais_venda.append(animal)
+    ident_existe, _ = buscar_animal_por_id(identificacao)
+    if ident_existe:
+        print(f'Erro: já existe um animal com a identificação "{identificacao}".')
+        return False   
+
     else:
-        animais.append(animal)
-    registrar_historico("cadastro_animal", f"{tipo} {identificacao}", status)
+        if status.upper() == 'VENDA':
+            peso = validacao_geral(peso)
+            arroba = validacao_geral(arroba)
+        animal = {
+            'tipo': tipo,
+            'identificacao': identificacao,
+            'status': status,
+            'peso': peso,
+            'valor': _calcular_valor(peso, arroba) if status.upper() == 'VENDA' else 0.0,
+        }
+        if status.upper() == 'VENDA':
+            animais_venda.append(animal)
+        else:
+            animais.append(animal)
+        registrar_historico("cadastro_animal", f"{tipo} {identificacao}", status)
+        return True
 
 
 def listar_animais():
@@ -59,7 +71,8 @@ def buscar_animal_por_id(ident: str):
     for a in animais_venda:
         if a['identificacao'].lower() == ident.lower():
             return a, animais_venda
-    return None, None
+
+    return None ,None
 
 
 def remover_animal(ident: str):
@@ -78,8 +91,9 @@ def atualizar_animal(ident: str, tipo: str, nova_id: str, status: str,
         return False
     lista.remove(animal)
     cadastrar_animal(tipo, nova_id, status, peso, arroba)
+    registrar_historico('Atualizar_animal',f'{animal['tipo']}{ident},',1)
     return True
-
+    
 
 def comprar_animal(ident: str):
     for i, a in enumerate(animais_venda):
@@ -116,14 +130,15 @@ def exibir_animais_venda():
 
 
 # Leite
-
-
 def adicionar_leite(litros: float):
     global leite
+    litros = validacao_geral(litros)
     leite += litros
     registrar_historico('producao_leite', 'Leite', f"{litros}L")
 
 
+
+        
 def estoque_leite():
     return leite
 
@@ -134,6 +149,9 @@ def estoque_leite():
 def cadastrar_produto(nome: str, kg: float, valor_kg: float,
                       leite_por_kg: float):
     global leite
+    kg = validacao_geral(kg)
+    valor_kg = validacao_geral(valor_kg)
+    leite_por_kg = validacao_geral(leite_por_kg)
     leite_necessario = kg * leite_por_kg
     if leite < leite_necessario:
         return False
@@ -163,6 +181,7 @@ def comprar_produto(nome: str, quantidade: float):
     p = buscar_produto_por_nome(nome)
     if not p:
         return None
+    quantidade = validacao_geral(quantidade)
     if p['kg'] < quantidade:
         return None
     p['kg'] -= quantidade
@@ -211,3 +230,17 @@ def ver_carrinho():
 
 def limpar_carrinho():
     carrinho.clear()
+
+def validacao_geral(valor):
+    while True:
+        try:
+            valor = float(valor)
+            if valor < 0:
+                print('Erro: quantidade não pode ser negativa.')
+                valor = input('Digite novamente: ')
+            else:
+                return valor
+        except ValueError:
+            print('Erro: digite apenas números.')
+            valor = input('Digite novamente: ')
+
