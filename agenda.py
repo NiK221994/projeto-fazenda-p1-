@@ -3,12 +3,12 @@
 from fpdf import FPDF
 from datetime import datetime
 
-agendamentos = []  # [{'cliente':..., 'dia':..., 'mes':..., 'ano':..., 'itens':[], 'total':...}, ...]
+agendamentos = []  
 
 DIAS_MES = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 
-def validar_data(dia: int, mes: int, ano: int):
+def validar_data(dia, mes, ano):
     if mes < 1 or mes > 12:
         return "Mes invalido."
     if ano < datetime.now().year:
@@ -18,7 +18,7 @@ def validar_data(dia: int, mes: int, ano: int):
     return None
 
 
-def agendar(dia: int, mes: int, ano:int, cliente: str, itens: str):
+def agendar(dia, mes, ano, cliente, itens):
     total = sum(i['valor'] for i in itens)
     agendamento = {
         'id': len(agendamentos) + 1,
@@ -32,7 +32,6 @@ def agendar(dia: int, mes: int, ano:int, cliente: str, itens: str):
     }
     agendamentos.append(agendamento)
     return agendamento
-
 
 
 
@@ -85,4 +84,5 @@ def gerar_recibo_pdf(ag):
     caminho = f"recibo_{ag['id']}.pdf"
     pdf.output(caminho)
     return caminho
+
 
