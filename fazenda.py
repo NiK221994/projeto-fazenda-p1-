@@ -2,11 +2,11 @@
 
 from datetime import datetime
 
-animais = []        # [{'tipo':..., 'identificacao':..., 'status':...}, ...]
-animais_venda = []  # [{'tipo':..., 'identificacao':..., 'status':..., 'valor':...}, ...]
-produtos = []       # [{'nome':..., 'kg':..., 'valor_kg':...}, ...]
-historico = []      # [{'data':..., 'acao':..., 'item':..., 'qtd':...}, ...]
-carrinho = []       # [{'descricao':..., 'quantidade':..., 'valor':...}, ...]
+animais = []        
+animais_venda = []  
+produtos = []       
+historico = []    
+carrinho = []       
 leite = 0.0
 palavras_a = {}
 
@@ -244,5 +244,6 @@ def validacao_geral(valor):
         except ValueError:
             print('Erro: digite apenas números.')
             valor = input('Digite novamente: ')
+
 
 
