@@ -1,10 +1,10 @@
 # auth.py - Usuarios e autenticacao
 
 usuarios = []   #usurio normal
-admins = [{'usuario': 'a', 'senha': 'a'}]  # admin padrao
+admins = [{'usuario': 'a', 'senha': 'a' }]  # admin teste do code
 
 
-def criar_usuario(user: str, senha: str|int):
+def criar_usuario(user, senha):
     for u in usuarios:
         if u['usuario'] == user:
             return False  # ja existe = break
@@ -12,7 +12,7 @@ def criar_usuario(user: str, senha: str|int):
     return True 
 
 
-def criar_admin(user: str, senha: str|int):
+def criar_admin(user, senha):
     for a in admins:
         if a['usuario'] == user:
             return False  
@@ -20,14 +20,14 @@ def criar_admin(user: str, senha: str|int):
     return True
 
 
-def login_usuario(user: str, senha: str|int):
+def login_usuario(user, senha):
     for u in usuarios:
         if u['usuario'] == user and u['senha'] == senha:
             return True
     return False
 
 
-def login_admin(user: str, senha: str|int):
+def login_admin(user, senha):
     for a in admins:
         if a['usuario'] == user and a['senha'] == senha:
             return True
